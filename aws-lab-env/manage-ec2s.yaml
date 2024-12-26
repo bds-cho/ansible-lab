@@ -1,0 +1,54 @@
+- name: Create EC2 Instances
+  hosts: control
+  gather_facts: False
+
+  vars:
+    keypair: ansible-connection
+    instance_type: t2.micro
+    debian_ami: ami-0584590e5f0e97daa
+    rhel_ami: ami-007c3072df8eb6584
+    region: eu-central-1
+    security_group: sg-06f602494cd511886
+    subnet: subnet-086adfc7a70890c22
+    status: running
+
+  tasks:
+
+    - name: Deploy Load-Balancer
+      ec2_instance:
+        security_group: "{{ security_group }}"
+        name: load-balancer
+        key_name: "{{ keypair }}"
+        instance_type: "{{ instance_type}}"
+        image_id: "{{ rhel_ami }}"
+        region: "{{ region }}"
+        subnet_id: subnet-086adfc7a70890c22
+        wait_timeout: 3
+        state: "{{ status }}"
+
+    - name: Deploy Frontend
+      ec2_instance:
+        security_group: "{{ security_group }}"
+        name: "{{ item }}"
+        key_name: "{{ keypair }}"
+        instance_type: "{{ instance_type}}"
+        image_id: "{{ debian_ami }}"
+        region: "{{ region }}"
+        subnet_id: subnet-086adfc7a70890c22
+        wait_timeout: 3
+        state: "{{ status }}"
+      with_items:
+        - frontend-1
+        - frontend-2
+
+    - name: Deploy SQL-Server
+      ec2_instance:
+        security_group: "{{ security_group }}"
+        name: sql-server
+        key_name: "{{ keypair }}"
+        instance_type: "{{ instance_type}}"
+        image_id: "{{ rhel_ami }}"
+        region: "{{ region }}"
+        subnet_id: subnet-086adfc7a70890c22
+        wait_timeout: 3
+        state: "{{ status }}"

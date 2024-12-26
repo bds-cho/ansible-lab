@@ -1,0 +1,10 @@
+FROM ubuntu:20.04
+ARG user=ansible
+RUN apt update -y && apt install -y openssh-server sudo
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN useradd -m -s /bin/bash ${user} && adduser ${user} sudo
+RUN echo "${user}:password" | chpasswd
+ADD ssh/id_rsa.pub /home/${user}/.ssh/authorized_keys
+RUN chown -R ${user}:${user} /home/${user}/.ssh
+EXPOSE 22
+CMD service ssh start && tail -f /dev/null

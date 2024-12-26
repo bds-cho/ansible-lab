@@ -1,0 +1,77 @@
+# =====> Deploying Frontend <=====
+- name: Start Frontend
+  hosts: frontend
+  gather_facts: True
+
+  tasks:
+    # Update APT Cache and Repos
+    - name: Update APT
+      apt: update_cache=True
+      when: ansible_distribution == "Debian"
+    
+    # Install Nginx Web-Server
+    - name: Install Nginx
+      apt: name=nginx state=present
+      when: ansible_distribution == "Debian"
+
+    # Copy Static Files to Nginx Location
+    - name: Copy Static files
+      copy:
+        src: ./util/index.html
+        dest: /var/www/html/index.html
+        mode: 0644
+
+    # Restart Nginx Service after Changes
+    - name: Restart Nginx Service
+      service: name=nginx state=restarted
+
+# =====> Deploying SQL-Server <=====
+- name: Start SQL-Server
+  hosts: sql_server
+  gather_facts: True
+
+  tasks:
+    # Update DNF Cache and Repos
+    - name: Update DNF
+      dnf: update_cache=True
+      when: ansible_distribution == "RedHat"
+
+    # Install MySQL
+    - name: Install MySQL
+      dnf: name=mysql-server state=present
+      when: ansible_distribution == "RedHat"
+
+    # Restart MySQL Service after Changes
+    - name: Restart MySQL Service
+      service: name=mysqld state=restarted
+
+# =====> Deploying Load-Balancer <=====
+- name: Start Load-Balancer
+  hosts: load_balancer
+  gather_facts: True
+
+  tasks:
+    # Update DNF Cache and Repos
+    - name: Update DNF
+      dnf: update_cache=True
+      when: ansible_distribution == "RedHat"
+
+    # Install Nginx
+    - name: Install Nginx
+      dnf: name=nginx state=present
+      when: ansible_distribution == "RedHat"
+
+    # Copy Nginx-Configuration File
+    - name: Copy Static files
+      copy:
+        src: ./util/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        mode: 0644
+
+    # Allow HTTP Connections
+    - name: Allow HTTP connections (bypass SELinux)
+      shell: setsebool -P httpd_can_network_connect 1
+
+    # Restart Nginx Service after Changes
+    - name: Restart Nginx Service
+      service: name=nginx state=restarted

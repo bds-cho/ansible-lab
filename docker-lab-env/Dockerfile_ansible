@@ -1,0 +1,4 @@
+FROM ubuntu:22.04
+RUN apt update -y && apt install -y software-properties-common nano
+RUN add-apt-repository --yes --update ppa:ansible/ansible && apt install -y ansible
+ADD ssh/id_rsa /root/.ssh/id_rsa

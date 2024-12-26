@@ -1,0 +1,22 @@
+[control]
+controller ansible_connection=local
+
+[alma]
+alma-[1:2]
+
+[alma:vars]
+#ansible_become_pass=password
+
+[ubuntu]
+ubuntu-[1:2]
+
+[ubuntu:vars]
+ansible_become_pass=password
+
+[linux:children]
+alma
+ubuntu
+
+[linux:vars]
+ansible_port=22
+ansible_become=true

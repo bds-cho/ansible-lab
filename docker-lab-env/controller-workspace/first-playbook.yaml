@@ -1,0 +1,47 @@
+-
+  hosts: linux
+  gather_facts: True
+  tags:
+    - first-play
+  vars:
+    msg_alma: "Hello World from Alma!\n"
+    msg_ubuntu: "Hello World from Ubuntu!\n"
+  tasks:
+    - name: Say Hello Alma
+      copy:
+        content: "{{ msg_alma }}"
+        dest: /home/ansible/hello.txt
+      notify: creation
+      when: ansible_distribution == "AlmaLinux"
+      tags:
+        - say-hello-alma
+
+    - name: Say Hello Ubuntu
+      copy:
+        content: "{{ msg_ubuntu }}"
+        dest: /home/ansible/hello.txt
+      notify: creation
+      when: ansible_distribution == "Ubuntu"
+      tags:
+        - say-hello-ubuntu
+
+    - debug:
+        msg: ===================> Testing include_tasks
+
+    - include_tasks: include.yml
+      when: include_tasks_var is not defined
+      tags:
+        - test-including
+
+    - debug:
+        msg: ===================> Testing import_tasks
+
+    - import_tasks: import.yml
+      when: import_tasks_var is not defined
+      tags:
+        - test-importing
+
+  handlers:
+    - name: creation
+      debug:
+        msg: File created successfully!
