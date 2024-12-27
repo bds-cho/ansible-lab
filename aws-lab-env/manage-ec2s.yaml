@@ -40,7 +40,6 @@
       with_items:
         - frontend-1
         - frontend-2
-      notify: Add DNS Entry
 
     - name: Deploy SQL-Server
       ec2_instance:
@@ -65,12 +64,3 @@
         subnet_id: subnet-086adfc7a70890c22
         wait_timeout: 3
         state: "{{ status }}"
-      notify: Add DNS Entry
-
-  handlers:
-
-    - name: Add DNS Entry
-      lineinline:
-        path: /etc/resolv.conf
-        regexp: ^search
-        line: search eu-central-1.compute.internal
