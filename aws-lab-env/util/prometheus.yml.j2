@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9090'
+
+{% set target_groups = ['load_balancer', 'frontend', 'sql_server'] %}  # Define target groups here
+{% for group, hosts in groups.items() if group in target_groups %}
+  - job_name: '{{ group }}'
+    static_configs:
+      - targets:
+{% for host in hosts %}
+          - '{{ hostvars[host].ansible_host | default(host) }}:9100'
+{% endfor %}
+{% endfor %}

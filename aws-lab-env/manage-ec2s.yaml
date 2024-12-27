@@ -19,7 +19,7 @@
         security_group: "{{ security_group }}"
         name: load-balancer
         key_name: "{{ keypair }}"
-        instance_type: "{{ instance_type}}"
+        instance_type: "{{ instance_type }}"
         image_id: "{{ rhel_ami }}"
         region: "{{ region }}"
         subnet_id: subnet-086adfc7a70890c22
@@ -31,7 +31,7 @@
         security_group: "{{ security_group }}"
         name: "{{ item }}"
         key_name: "{{ keypair }}"
-        instance_type: "{{ instance_type}}"
+        instance_type: "{{ instance_type }}"
         image_id: "{{ debian_ami }}"
         region: "{{ region }}"
         subnet_id: subnet-086adfc7a70890c22
@@ -40,15 +40,37 @@
       with_items:
         - frontend-1
         - frontend-2
+      notify: Add DNS Entry
 
     - name: Deploy SQL-Server
       ec2_instance:
         security_group: "{{ security_group }}"
         name: sql-server
         key_name: "{{ keypair }}"
-        instance_type: "{{ instance_type}}"
+        instance_type: "{{ instance_type }}"
         image_id: "{{ rhel_ami }}"
         region: "{{ region }}"
         subnet_id: subnet-086adfc7a70890c22
         wait_timeout: 3
         state: "{{ status }}"
+
+    - name: Deploy Monitoring Server
+      ec2_instance:
+        security_group: "{{ security_group }}"
+        name: monitoring
+        key_name: "{{ keypair }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ debian_ami }}"
+        region: "{{ region }}"
+        subnet_id: subnet-086adfc7a70890c22
+        wait_timeout: 3
+        state: "{{ status }}"
+      notify: Add DNS Entry
+
+  handlers:
+
+    - name: Add DNS Entry
+      lineinline:
+        path: /etc/resolv.conf
+        regexp: ^search
+        line: search eu-central-1.compute.internal

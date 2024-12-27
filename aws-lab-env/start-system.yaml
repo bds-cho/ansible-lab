@@ -75,3 +75,65 @@
     # Restart Nginx Service after Changes
     - name: Restart Nginx Service
       service: name=nginx state=restarted
+
+# =====> Install Node-Exporter on Hosts <=====
+- name: Install Node-Exporter
+  hosts: all
+  gather_facts: True
+
+  tasks:
+    # Copy Node-Exporter Binary
+    - name: Copy Node-Exporter
+      copy:
+        src: ./util/node_exporter
+        dest: /bin/
+        mode: 0770
+
+    # Start Node-Exporter
+    - name: Start Node-Exporter
+      shell: "(nohup /bin/node_exporter > /root/node_exporter.log 2>&1 &)"
+
+# =====> Deploying Monitoring Server <=====
+- name: Start Monitoring
+  hosts: monitoring_server
+  gather_facts: True
+
+  tasks:
+    # Update APT Cache and Repos
+    - name: Update APT
+      apt: update_cache=True
+      when: ansible_distribution == "Debian"
+
+    # Install Docker
+    #- name: Install Docker
+    #  script: ./util/install-docker-deb.sh >> docker-installation.log
+
+    # Create Prometheus Folder
+    - name: Create Prometheus Folder
+      file: path=/etc/prometheus state=directory mode=0755
+
+    # Create Prometheus Config File
+    - name: Template the Prometheus-Config
+      template:
+        src: ./util/prometheus.yml.j2
+        dest: /etc/prometheus/prometheus.yml
+        mode: 0644
+      notify: Restart Prometheus
+
+    # Deploy Prometheus Container
+    - name: Deploy Prometheus
+      docker_container:
+        name: prometheus_container
+        restart_policy: always
+        image: prom/prometheus
+        state: present
+        volumes:
+          - /etc/prometheus/:/etc/prometheus/
+        network_mode: host
+      notify: Restart Prometheus
+
+  handlers:
+    - name: Restart Prometheus
+      docker_container:
+        name: prometheus_container
+        state: started

@@ -11,8 +11,12 @@ i-03ddcfeb602653dba
 [sql_server]
 i-065060e9c9e08116b
 
+[monitoring_server]
+i-0b170ffec65152540
+
 [debian:children]
 frontend
+monitoring_server
 
 [rhel:children]
 load_balancer
@@ -22,11 +26,13 @@ sql_server
 debian
 rhel
 
+# =====> Group Variables <=====
+
 [debian:vars]
 ansible_user=admin
 
 [rhel:vars]
 ansible_user=ec2-user
 
-[linux:vars]
+[all:vars]
 ansible_become=true
